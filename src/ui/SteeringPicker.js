@@ -42,8 +42,9 @@ const MODES = [
 ];
 
 export class SteeringPicker {
-  constructor(parent = document.body, { onSelect } = {}) {
+  constructor(parent = document.body, { onSelect, onClose } = {}) {
     this.onSelect = onSelect;
+    this.onClose  = onClose;
 
     this.root = document.createElement('div');
     this.root.id = 'steering-picker';
@@ -96,6 +97,7 @@ export class SteeringPicker {
   hide() {
     this.root.classList.remove('open');
     setTimeout(() => this.root.classList.add('hidden'), 310);
+    if (this.onClose) this.onClose();
   }
 
   _pick(mode) {

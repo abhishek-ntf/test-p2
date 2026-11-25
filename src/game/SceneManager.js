@@ -35,7 +35,7 @@ export class SceneManager {
     this.scene.fog = new THREE.Fog(0xffffff, 45, 200);
 
     this.camera = new THREE.PerspectiveCamera(62, 1, 0.5, 400);
-    this.camera.position.set(0, 4.2, 9.5);
+    this.camera.position.set(0, 4.8, 11.8);
     this.camera.lookAt(0, 1.2, -14);
 
     this.ambient = new THREE.AmbientLight(0xffffff, 0.5);
@@ -44,7 +44,7 @@ export class SceneManager {
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(1024, 1024);
     const s = this.sun.shadow.camera;
-    s.left = -8; s.right = 8; s.top = 8; s.bottom = -8; s.near = 1; s.far = 50;
+    s.left = -10; s.right = 10; s.top = 10; s.bottom = -10; s.near = 1; s.far = 50;
     this.sun.shadow.bias = -0.0005;
     this.scene.add(this.ambient, this.sun, this.sun.target);
 

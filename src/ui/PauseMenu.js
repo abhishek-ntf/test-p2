@@ -22,16 +22,12 @@ export class PauseMenu {
             <button type="button" class="btn small" data-k="audio">🔊 SOUND: ON</button>
             <button type="button" class="btn small" data-k="fs">⛶ FULLSCREEN</button>
           </div>
-          <button type="button" class="btn small ghost" data-k="how">🎮 CONTROLS & TIPS</button>
           <button type="button" class="btn small ghost danger" data-k="menu">MAIN MENU</button>
         </div>
 
         <div class="pause-shortcuts">
-          <div><kbd>W / Z / ↑</kbd> Gas</div>
-          <div><kbd>A / Q / ←</kbd> Left</div>
-          <div><kbd>S / ↓</kbd> Brake</div>
-          <div><kbd>D / →</kbd> Right</div>
-          <div><kbd>SPACE</kbd> Nitro</div>
+          <div><kbd>W A S D</kbd> Player 1</div>
+          <div><kbd>↑ ← ↓ →</kbd> Player 2</div>
           <div><kbd>P</kbd> Pause</div>
         </div>
       </div>
@@ -45,7 +41,6 @@ export class PauseMenu {
     this.el.menu.addEventListener('click', (e) => { e.currentTarget.blur(); if (this.onMenu) this.onMenu(); });
     this.el.audio.addEventListener('click', (e) => { e.currentTarget.blur(); if (this.onToggleMute) this.onToggleMute(); });
     this.el.fs.addEventListener('click', (e) => { e.currentTarget.blur(); if (this.onToggleFullscreen) this.onToggleFullscreen(); });
-    this.el.how.addEventListener('click', (e) => { e.currentTarget.blur(); if (this.onHowToPlay) this.onHowToPlay(); });
 
     parent.appendChild(this.root);
   }

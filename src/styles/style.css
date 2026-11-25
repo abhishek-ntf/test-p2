@@ -494,18 +494,14 @@ html, body {
     margin-top: 0;
   }
   .gameover-panel {
-    max-width: min(650px, 94vw);
+    max-width: min(440px, 94vw);
     max-height: calc(100dvh - 12px);
     max-height: 96dvh;
-    padding: 10px 16px 12px;
-    display: grid;
-    grid-template-columns: 1fr 1.05fr;
-    grid-template-areas:
-      "header board"
-      "footer board";
-    column-gap: 16px;
-    row-gap: 6px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    gap: 8px;
   }
   .go-header {
     grid-area: header;
@@ -677,14 +673,32 @@ html, body {
 .lr-row.me .lr-sc { color: #fff; }
 .lr-sep { text-align: center; color: #5b6b80; font-size: 10px; line-height: 1; }
 
-/* ===================== One-time name prompt ===================== */
-.name-panel { max-width: 360px; text-align: center; }
-.name-panel input {
-  width: 100%; padding: 12px; border-radius: 10px; text-align: center;
-  border: 1px solid rgba(0, 229, 255, 0.3); background: rgba(0, 0, 0, 0.3);
-  color: #fff; font-size: 15px; outline: none; margin-bottom: 14px;
+/* ===================== Name prompt modal ===================== */
+.name-panel {
+  max-width: 380px;
+  width: 90%;
+  padding: 24px 28px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: rgba(5, 12, 28, 0.92);
+  border: 2px solid var(--neon);
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.35);
 }
-.name-panel input:focus { border-color: var(--neon); }
+.name-prompt-wrap {
+  margin: 4px 0 6px;
+}
+.name-panel input {
+  width: 100%; padding: 12px 14px; border-radius: 10px; text-align: center;
+  border: 1.5px solid rgba(0, 229, 255, 0.45); background: rgba(0, 0, 0, 0.45);
+  color: #fff; font-size: 16px; font-weight: 700; letter-spacing: 1px; outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.name-panel input:focus {
+  border-color: var(--neon);
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.6);
+}
 
 /* ===================== Confetti celebration ===================== */
 #confetti-layer { position: fixed; inset: 0; pointer-events: none; z-index: 55; overflow: hidden; }
@@ -1228,3 +1242,143 @@ kbd {
 .mt-10 {
   margin-top: 10px;
 }
+
+/* ── Name prompt required-field shake ── */
+@keyframes name-shake {
+  0%,100% { transform: translateX(0); }
+  20%      { transform: translateX(-8px); }
+  40%      { transform: translateX(8px); }
+  60%      { transform: translateX(-6px); }
+  80%      { transform: translateX(6px); }
+}
+.name-panel input.shake { animation: name-shake .35s ease; border-color: var(--neon-2) !important; }
+
+/* ===================== 2-Player HUD & Menu & GameOver ===================== */
+.p-score-card {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: rgba(5, 10, 22, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  min-width: 118px;
+  transition: opacity .25s ease;
+}
+.p-score-card.p1 {
+  align-items: flex-start;
+  border: 1.5px solid rgba(255, 42, 77, 0.7);
+  box-shadow: 0 0 16px rgba(255, 42, 77, 0.25);
+}
+.p-score-card.p2 {
+  align-items: flex-end;
+  border: 1.5px solid rgba(0, 212, 255, 0.7);
+  box-shadow: 0 0 16px rgba(0, 212, 255, 0.25);
+}
+.p-score-card small {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  opacity: .85;
+}
+.p-score-card.p1 small { color: #ff6b81; }
+.p-score-card.p2 small { color: #7cf3ff; }
+.p-score-card b {
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 900;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.p-score-card.p1 b { color: #ff2a4d; text-shadow: 0 0 12px rgba(255, 42, 77, 0.65); }
+.p-score-card.p2 b { color: #00e5ff; text-shadow: 0 0 12px rgba(0, 229, 255, 0.65); }
+.p-score-card.out { opacity: 0.48; }
+
+.hud-center .btns {
+  display: flex;
+  gap: 6px;
+  pointer-events: auto;
+}
+.hud-center .btns button {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+  background: rgba(5, 15, 35, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.p2-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  margin: 4px 0 16px;
+}
+.p2-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.p2-card.p1 { border: 1.5px solid rgba(255, 42, 77, 0.6); }
+.p2-card.p2 { border: 1.5px solid rgba(0, 212, 255, 0.6); }
+.p2-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+.p2-card.p1 .p2-badge { color: #ff5c77; }
+.p2-card.p2 .p2-badge { color: #00e5ff; }
+.p2-keys { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+.p2-card small { font-size: 10px; opacity: .65; }
+
+.ctrl-card.p1 { border-color: rgba(255, 42, 77, 0.45); }
+.ctrl-card.p1 b { color: #ff5c77; }
+.ctrl-card.p2 { border-color: rgba(0, 212, 255, 0.45); }
+.ctrl-card.p2 b { color: #00e5ff; }
+
+.winner-badge {
+  margin: 6px 0 14px;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  padding: 6px 16px;
+  border-radius: 99px;
+}
+.winner-badge.p1 { color: #ff5c77; background: rgba(255, 42, 77, 0.16); border: 1px solid rgba(255, 42, 77, 0.6); }
+.winner-badge.p2 { color: #00e5ff; background: rgba(0, 212, 255, 0.16); border: 1px solid rgba(0, 212, 255, 0.6); }
+.winner-badge.tie { color: #ffd84a; background: rgba(255, 216, 74, 0.16); border: 1px solid rgba(255, 216, 74, 0.6); }
+
+.go-duel-scores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 18px;
+}
+.duel-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+}
+.duel-box.p1.win { border-color: #ff2a4d; box-shadow: 0 0 18px rgba(255, 42, 77, 0.35); }
+.duel-box.p2.win { border-color: #00e5ff; box-shadow: 0 0 18px rgba(0, 229, 255, 0.35); }
+.duel-box small { font-size: 10px; font-weight: 800; letter-spacing: 2px; opacity: .75; }
+.duel-box b { font-size: 28px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.duel-box.p1 b { color: #ff2a4d; }
+.duel-box.p2 b { color: #00e5ff; }

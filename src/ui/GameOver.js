@@ -1,5 +1,3 @@
-import { rankedRows, boardHTML } from './Leaderboard.js';
-
 export class GameOver {
   constructor(parent = document.body, { onRestart, onMenu } = {}) {
     this.onRestart = onRestart; this.onMenu = onMenu;
@@ -9,16 +7,18 @@ export class GameOver {
       <div class="panel glass gameover-panel">
         <div class="go-header">
           <h1 class="title small go-title">GAME OVER</h1>
-          <div class="newbest hidden" data-k="newbest">★ NEW HIGH SCORE ★</div>
-          <div class="score-big go-score" data-k="score">0</div>
-          <div class="over-rank">RANK <b data-k="rank">–</b> <span class="rank-note" data-k="rankNote"></span></div>
-          <div class="stats go-stats">
-            <div><small>DISTANCE</small><b data-k="dist">0 m</b></div>
-            <div><small>LEVEL</small><b data-k="level">1</b></div>
-            <div><small>BEST</small><b data-k="best">0</b></div>
+          <div class="winner-badge" data-k="winner">PLAYER 1 WINS!</div>
+          <div class="go-duel-scores">
+            <div class="duel-box p1" data-k="p1Box">
+              <small>PLAYER 1</small>
+              <b data-k="p1Score">0</b>
+            </div>
+            <div class="duel-box p2" data-k="p2Box">
+              <small>PLAYER 2</small>
+              <b data-k="p2Score">0</b>
+            </div>
           </div>
         </div>
-        <div class="board full go-board" data-k="board"></div>
         <div class="go-footer">
           <div class="go-actions">
             <button type="button" class="btn" data-k="restart">RESTART</button>
@@ -34,27 +34,27 @@ export class GameOver {
     parent.appendChild(this.root);
   }
 
-  /** payload: { score, distance, level, best, newBest, prevRank, newRank, leaderboard(raw rows), meId } */
-  show({ score, distance, level, best, newBest, prevRank, newRank, leaderboard, meId }) {
-    this.el.score.textContent = score.toLocaleString();
-    this.el.dist.textContent = `${Math.round(distance).toLocaleString()} m`;
-    this.el.level.textContent = level;
-    this.el.best.textContent = best.toLocaleString();
-    this.el.newbest.classList.toggle('hidden', !newBest);
-    this.el.rank.textContent = `#${newRank}`;
-    const improved = newRank < prevRank;
-    this.el.rankNote.textContent = improved ? `▲ from #${prevRank}` : '';
-    this.el.rankNote.classList.toggle('up', improved);
-    this.el.board.innerHTML = boardHTML(rankedRows(leaderboard || [], meId));
+  show({ p1Score, p2Score }) {
+    const s1 = Math.floor(p1Score || 0);
+    const s2 = Math.floor(p2Score || 0);
+    this.el.p1Score.textContent = s1.toLocaleString();
+    this.el.p2Score.textContent = s2.toLocaleString();
+
+    this.el.p1Box.classList.toggle('win', s1 > s2);
+    this.el.p2Box.classList.toggle('win', s2 > s1);
+
+    if (s1 > s2) {
+      this.el.winner.textContent = '🏆 PLAYER 1 WINS!';
+      this.el.winner.className = 'winner-badge p1';
+    } else if (s2 > s1) {
+      this.el.winner.textContent = '🏆 PLAYER 2 WINS!';
+      this.el.winner.className = 'winner-badge p2';
+    } else {
+      this.el.winner.textContent = "🤝 IT'S A TIE!";
+      this.el.winner.className = 'winner-badge tie';
+    }
+
     this.root.classList.remove('hidden');
-    // scroll the player's row into view inside the board container
-    requestAnimationFrame(() => {
-      const me = this.el.board.querySelector('.row.me');
-      if (me) {
-        const target = me.offsetTop - (this.el.board.clientHeight / 2) + (me.clientHeight / 2);
-        this.el.board.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
-      }
-    });
   }
 
   hide() { this.root.classList.add('hidden'); }

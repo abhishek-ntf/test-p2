@@ -40,7 +40,6 @@ export const GameStorage = {
     let name = this._gs(NAME_KEY, '');
     if (!name) {
       name = generateDefaultName();
-      this.setUserName(name);
     }
     return name;
   },
@@ -64,7 +63,7 @@ export const GameStorage = {
   getVolume() { return this._g(VOLUME_KEY, 0.8); },
   setVolume(vol) { this._s(VOLUME_KEY, Math.max(0, Math.min(1, vol))); },
 
-  /** Local best (used as offline fallback + before first Supabase sync). */
+  /** Local best score storage. */
   getBest() {
     const b = this._g(BEST_KEY, null);
     if (b && typeof b.score === 'number') {

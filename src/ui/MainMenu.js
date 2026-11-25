@@ -1,19 +1,14 @@
-import { GameStorage } from '../utils/Storage.js';
-import { rankedRows, boardHTML } from './Leaderboard.js';
-
 /**
- * Start screen:
- * - PLAY tab: quick start, stats, editable player name, clear goals
- * - CONTROLS tab: visual keyboard diagram (WASD / ZQSD / Arrows) + Replay Tutorial
- * - RANKS tab: global live leaderboard
- * - SETTINGS tab: audio toggle, fullscreen, steering mode
+ * Start screen for 2-Player Neon Highway:
+ * - PLAY tab: quick start & 2-player control preview
+ * - CONTROLS tab: detailed P1 (WASD) & P2 (Arrow keys) guide
+ * - SETTINGS tab: audio toggle, fullscreen, mobile steering mode
  */
 export class MainMenu {
-  constructor(parent = document.body, { onStart, onSettingsChange, onCalibrate, onReplayTutorial, onToggleMute, onToggleFullscreen } = {}) {
+  constructor(parent = document.body, { onStart, onSettingsChange, onCalibrate, onToggleMute, onToggleFullscreen } = {}) {
     this.onStart = onStart;
     this.onSettingsChange = onSettingsChange;
     this.onCalibrate = onCalibrate;
-    this.onReplayTutorial = onReplayTutorial;
     this.onToggleMute = onToggleMute;
     this.onToggleFullscreen = onToggleFullscreen;
 
@@ -24,67 +19,47 @@ export class MainMenu {
         <div class="menu-tabs">
           <button type="button" class="tab active" data-tab="play">PLAY</button>
           <button type="button" class="tab" data-tab="controls">CONTROLS</button>
-          <button type="button" class="tab" data-tab="ranks">RANKS</button>
           <button type="button" class="tab" data-tab="settings">SETTINGS</button>
         </div>
 
         <!-- PLAY TAB -->
         <div class="tab-body" data-body="play">
           <h1 class="title small">NEON<br>HIGHWAY</h1>
-          <p class="sub">Solo Cyberpunk Arcade Racer · Endless 3D Highway</p>
+          <p class="sub">2-Player Arcade Racer · 4-Lane Endless Highway</p>
 
-          <div class="profile-row">
-            <small>PLAYER NAME (CLICK TO EDIT)</small>
-            <div class="name-edit-wrap">
-              <input type="text" class="name-input" data-k="nameInput" maxlength="14" placeholder="Enter name" />
-              <button type="button" class="btn-xs" data-k="saveName">SAVE</button>
+          <div class="p2-cards">
+            <div class="p2-card p1">
+              <span class="p2-badge">PLAYER 1 · RED</span>
+              <div class="p2-keys"><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></div>
+              <small>Shift / E: Nitro</small>
             </div>
-          </div>
-
-          <div class="best-line">
-            BEST <b data-k="best">0</b> · <span data-k="km">0.00</span> KM · RANK <b data-k="rank">–</b>
-          </div>
-
-          <div class="main-goal-banner">
-            <span>🎯 OBJECTIVE:</span> Reach 1,000m to unlock Level 2 &amp; extra life!
+            <div class="p2-card p2">
+              <span class="p2-badge">PLAYER 2 · BLUE</span>
+              <div class="p2-keys"><kbd>↑</kbd> <kbd>←</kbd> <kbd>↓</kbd> <kbd>→</kbd></div>
+              <small>R-Shift / Space: Nitro</small>
+            </div>
           </div>
 
           <button type="button" class="btn" data-k="start">START RACE</button>
-          <p class="hint" data-k="hint"></p>
+          <p class="hint" data-k="hint">Press ENTER to race · P to pause</p>
         </div>
 
-        <!-- CONTROLS & HOW TO PLAY TAB -->
+        <!-- CONTROLS TAB -->
         <div class="tab-body hidden" data-body="controls">
-          <h2 class="tab-title">HOW TO CONTROL</h2>
+          <h2 class="tab-title">2-PLAYER CONTROLS</h2>
           <div class="controls-guide">
             <div class="ctrl-grid">
-              <div class="ctrl-card">
-                <b>STEER LEFT / RIGHT</b>
-                <p>Tap <kbd>A</kbd> <kbd>D</kbd> or <kbd>←</kbd> <kbd>→</kbd> to change lanes.<br>Hold for free steering.<br><small>(AZERTY: <kbd>Q</kbd> <kbd>D</kbd>)</small></p>
+              <div class="ctrl-card p1">
+                <b>PLAYER 1 (RED CAR)</b>
+                <p><kbd>W</kbd> Accelerate<br><kbd>S</kbd> Brake<br><kbd>A</kbd> / <kbd>D</kbd> Steer<br><kbd>L-Shift</kbd> / <kbd>E</kbd> Nitro · <kbd>Q</kbd> Horn</p>
               </div>
-              <div class="ctrl-card">
-                <b>ACCELERATE &amp; BRAKE</b>
-                <p>Hold <kbd>W</kbd> / <kbd>↑</kbd> for gas.<br>Hold <kbd>S</kbd> / <kbd>↓</kbd> to brake.<br><small>(AZERTY: <kbd>Z</kbd> for gas)</small></p>
-              </div>
-              <div class="ctrl-card">
-                <b>NITRO BOOST ⚡</b>
-                <p>Press <kbd>SPACEBAR</kbd> when nitro gauge is charged to blast through traffic!</p>
-              </div>
-              <div class="ctrl-card">
-                <b>HORN &amp; PAUSE</b>
-                <p>Press <kbd>H</kbd> to make cars move aside.<br>Press <kbd>P</kbd> to pause anytime.</p>
+              <div class="ctrl-card p2">
+                <b>PLAYER 2 (BLUE CAR)</b>
+                <p><kbd>↑</kbd> Accelerate<br><kbd>↓</kbd> Brake<br><kbd>←</kbd> / <kbd>→</kbd> Steer<br><kbd>R-Shift</kbd> / <kbd>Space</kbd> Nitro · <kbd>/</kbd> Horn</p>
               </div>
             </div>
-
-            <button type="button" class="btn ghost small mt-10" data-k="replayTut">REPLAY IN-GAME TUTORIAL</button>
+            <p class="hint">Dodge traffic across 4 lanes. Outscore your rival!</p>
           </div>
-        </div>
-
-        <!-- RANKS TAB -->
-        <div class="tab-body hidden" data-body="ranks">
-          <h2 class="tab-title">GLOBAL LEADERBOARD</h2>
-          <div class="board" data-k="board"></div>
-          <p class="hint">Global rankings · overtake rivals in real-time as you score!</p>
         </div>
 
         <!-- SETTINGS TAB -->
@@ -100,7 +75,7 @@ export class MainMenu {
           </div>
 
           <div class="set-group">
-            <small>MOBILE STEERING CONTROL</small>
+            <small>MOBILE STEERING CONTROL (P1)</small>
             <div class="mode-pick" data-k="modes">
               <button type="button" data-mode="arrows">ARROWS</button>
               <button type="button" data-mode="wheel">WHEEL</button>
@@ -126,34 +101,15 @@ export class MainMenu {
     this.el = {};
     this.root.querySelectorAll('[data-k]').forEach((n) => { this.el[n.dataset.k] = n; });
 
-    // Tabs
     this.root.querySelectorAll('.tab').forEach((t) => {
       t.addEventListener('click', () => this._switchTab(t.dataset.tab));
     });
 
-    // Start
     this.el.start.addEventListener('click', (e) => {
       e.currentTarget.blur();
-      this._saveName();
       if (this.onStart) this.onStart();
     });
 
-    // Name change
-    this.el.saveName.addEventListener('click', () => this._saveName());
-    this.el.nameInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        this._saveName();
-      }
-    });
-
-    // Replay tutorial
-    this.el.replayTut.addEventListener('click', (e) => {
-      e.currentTarget.blur();
-      if (this.onReplayTutorial) this.onReplayTutorial();
-    });
-
-    // Quick Audio / FS buttons
     this.el.audioBtn.addEventListener('click', (e) => {
       e.currentTarget.blur();
       if (this.onToggleMute) {
@@ -167,7 +123,6 @@ export class MainMenu {
       if (this.onToggleFullscreen) this.onToggleFullscreen();
     });
 
-    // Mode pick
     this.el.modes.querySelectorAll('button').forEach((b) => {
       b.addEventListener('click', (e) => {
         e.currentTarget.blur();
@@ -176,32 +131,22 @@ export class MainMenu {
       });
     });
 
-    // Sens
     this.el.sens.addEventListener('input', () => {
       const v = Number(this.el.sens.value);
       this.el.sensVal.textContent = v.toFixed(1);
       if (this.onSettingsChange) this.onSettingsChange({ tiltSensitivity: v });
     });
 
-    // Invert
     this.el.invert.addEventListener('change', () => {
       if (this.onSettingsChange) this.onSettingsChange({ tiltInvert: this.el.invert.checked });
     });
 
-    // Calib
     this.el.calib.addEventListener('click', (e) => {
       e.currentTarget.blur();
       if (this.onCalibrate) this.onCalibrate();
     });
 
     parent.appendChild(this.root);
-  }
-
-  _saveName() {
-    const val = (this.el.nameInput.value || '').trim();
-    if (val) {
-      GameStorage.setUserName(val);
-    }
   }
 
   _switchTab(tab) {
@@ -218,11 +163,7 @@ export class MainMenu {
     this.el.audioBtn.textContent = muted ? '🔇 SOUND: OFF' : '🔊 SOUND: ON';
   }
 
-  show({ best, isTouch, name, leaderboard, settings, isMuted = false }) {
-    this.el.nameInput.value = name || GameStorage.getUserName();
-    this.el.best.textContent = best.score.toLocaleString();
-    this.el.km.textContent = best.km.toFixed(2);
-    this.setBoard(leaderboard);
+  show({ isTouch, settings, isMuted = false }) {
     this.setMuted(isMuted);
 
     const mode = settings.controlMode || 'arrows';
@@ -233,29 +174,16 @@ export class MainMenu {
 
     this.el.setHint.textContent = isTouch
       ? 'Tilt needs permission on iOS — tap CALIBRATE TILT SENSOR while holding phone level.'
-      : 'Full desktop keyboard support: QWERTY (WASD) and AZERTY (ZQSD). Touch controls auto-enable on mobile.';
+      : 'Both players share one keyboard: P1 uses WASD, P2 uses Arrow Keys.';
 
     this.el.hint.textContent = isTouch
-      ? 'Steer with on-screen arrows / wheel · GAS · BRAKE · NITRO · HORN'
-      : '←→ / A D steer (tap = lane, hold = free) · ↑↓ / W S speed · SPACE nitro · P pause';
+      ? 'Tap START RACE to begin!'
+      : 'P1: W A S D · P2: ↑ ← ↓ → · ENTER to start · P to pause';
 
     this.root.classList.remove('hidden');
   }
 
-  setBoard(leaderboard) {
-    const meId = GameStorage.getDeviceId();
-    const rows = rankedRows(leaderboard || [], meId);
-    this.el.board.innerHTML = boardHTML(rows);
-    const me = rows.find((r) => r.isCurrent);
-    if (this.el.rank) this.el.rank.textContent = me ? `#${me.rank}` : `#${rows.length + 1}`;
-  }
-
-  updateRanks(leaderboard) {
-    this.setBoard(leaderboard);
-  }
-
   hide() {
-    this._saveName();
     this.root.classList.add('hidden');
   }
 

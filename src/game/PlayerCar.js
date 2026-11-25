@@ -8,9 +8,9 @@ const MODEL_URL = `${import.meta.env.BASE_URL}models/ferrari.glb`;
 const TARGET_LENGTH = 4.15;
 
 export class PlayerCar {
-  constructor(scene, color = null) {
+  constructor(scene, color = null, startX = LANE_X[1]) {
     this.scene = scene;
-    this.group = new THREE.Group();   // world position (lane x)
+    this.group = new THREE.Group();   // world position (lane x, relative z)
     this.model = new THREE.Group();   // visual bob / lean / pitch / yaw
     this.group.add(this.model);
     this.wheels = [];
@@ -19,9 +19,11 @@ export class PlayerCar {
     this.time = 0;
     this.rollRadius = WHEEL_RADIUS;
     this._color = color;
+    this._startX = startX;
 
     // Phase 3 state
-    this.targetX = LANE_X[1];
+    this.group.position.x = startX;
+    this.targetX = startX;
     this.invincibleT = 0;
     this.vx = 0;
     this.steer = 0;
@@ -179,8 +181,11 @@ export class PlayerCar {
 
   setInvincible(t) { this.invincibleT = t; }
 
-  reset() {
-    this.group.position.x = 0; this.targetX = 0; this.vx = 0; this.steer = 0; this.slip = 0; this.pitch = 0;
+  reset(startX = this._startX) {
+    this._startX = startX;
+    this.group.position.set(startX, 0, 0);
+    this.group.visible = true;
+    this.targetX = startX; this.vx = 0; this.steer = 0; this.slip = 0; this.pitch = 0;
     this.model.position.set(0, 0, 0);
     this.flameLevel = 0; this.nitroOn = false; this.braking = false; this.invincibleT = 0;
     this.model.visible = true;

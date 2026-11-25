@@ -1,7 +1,12 @@
 export const LANE_WIDTH = 3.4;
-export const LANE_COUNT = 3;
-export const LANE_X = [-LANE_WIDTH, 0, LANE_WIDTH];
-export const ROAD_WIDTH = LANE_WIDTH * LANE_COUNT + 1.2; // drivable 10.2 + curbs
+export const LANE_COUNT = 4;
+export const LANE_X = [
+  -1.5 * LANE_WIDTH,
+  -0.5 * LANE_WIDTH,
+  0.5 * LANE_WIDTH,
+  1.5 * LANE_WIDTH,
+];
+export const ROAD_WIDTH = LANE_WIDTH * LANE_COUNT + 1.2; // drivable 13.6 + curbs
 export const ROAD_HALF = ROAD_WIDTH / 2;
 
 export const SEGMENT_LENGTH = 40;
@@ -12,6 +17,8 @@ export const RECYCLE_Z = 30; // anything past this z is behind the camera
 export const BASE_SPEED = 34; // world units / second
 export const WHEEL_RADIUS = 0.42;
 export const DEFAULT_CAR_COLOR = 0xff2a4d;
+export const P1_COLOR = 0xff2a4d; // Red
+export const P2_COLOR = 0x00d4ff; // Cyan-Blue
 
 export const THEMES = {
   day: {
@@ -55,9 +62,9 @@ export const MAX_CRUISE = 48;
 export const CRASH_SPEED = 12;        // speed cap right after hitting a car
 export const PLAYER_HW = 0.85;        // player hitbox half width / half length
 export const PLAYER_HL = 2.0;
-export const RAIL_X = 5.0;            // hard limit of the car centre
-export const RAIL_HIT_X = 4.85;       // beyond this the car scrapes the railing = foul
-export const STEER_LIMIT = 5.2;
+export const RAIL_X = (LANE_WIDTH * LANE_COUNT) / 2 - 0.1;       // hard limit of the car centre
+export const RAIL_HIT_X = RAIL_X - 0.15;                           // beyond this the car scrapes the railing = foul
+export const STEER_LIMIT = RAIL_X + 0.2;
 export const LAT_SPEED = 11;          // free-steering lateral speed (units/s)
 export const HOLD_FREE = 0.22;        // keyboard hold time before free steering starts
 export const LAT_K = 95;              // snappy lane tracking so the view never feels paused
@@ -93,4 +100,4 @@ export function stepTrafficLateral(x, vx, target, dt) {
   x += vx * dt;
   return [x, vx];
 }
-export const TRAFFIC_POOL = 14;
+export const TRAFFIC_POOL = 18;

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {
-  LANE_WIDTH, ROAD_WIDTH, ROAD_HALF, SEGMENT_LENGTH, SEGMENT_COUNT, WORLD_SPAN, RECYCLE_Z,
+  LANE_WIDTH, LANE_COUNT, ROAD_WIDTH, ROAD_HALF, SEGMENT_LENGTH, SEGMENT_COUNT, WORLD_SPAN, RECYCLE_Z,
 } from '../utils/Constants.js';
 
 function createRoadTexture(renderer) {
@@ -23,14 +23,16 @@ function createRoadTexture(renderer) {
   }
   // solid edge lines
   ctx.fillStyle = '#f4f4f4';
-  const edge = LANE_WIDTH * 1.5 - 0.15;
+  const edge = (LANE_WIDTH * LANE_COUNT) / 2 - 0.15;
   ctx.fillRect(X(-edge) - 0.09 * ppu, 0, 0.18 * ppu, h);
   ctx.fillRect(X(edge) - 0.09 * ppu, 0, 0.18 * ppu, h);
   // dashed lane dividers: 4u dash / 6u gap, period 10u
   ctx.fillStyle = '#ffd84a';
   for (let y = 0; y < h; y += 10 * ppu) {
-    ctx.fillRect(X(-LANE_WIDTH / 2) - 0.09 * ppu, y, 0.18 * ppu, 4 * ppu);
-    ctx.fillRect(X(LANE_WIDTH / 2) - 0.09 * ppu, y, 0.18 * ppu, 4 * ppu);
+    for (let i = 1; i < LANE_COUNT; i++) {
+      const lx = (i - LANE_COUNT / 2) * LANE_WIDTH;
+      ctx.fillRect(X(lx) - 0.09 * ppu, y, 0.18 * ppu, 4 * ppu);
+    }
   }
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;

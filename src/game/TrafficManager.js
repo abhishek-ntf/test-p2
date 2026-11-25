@@ -23,7 +23,8 @@ const TYPES = {
     ['body', 2.2, 1.5, 1.9, 1.1, -3.2], ['glass', 2.22, 0.55, 0.8, 1.65, -3.55], ['trailer', 2.35, 2.5, 6.3, 1.9, 0.95]] },
 };
 const POOL_TYPES = ['sedan', 'sedan', 'sedan', 'sedan', 'suv', 'suv', 'suv', 'hatch', 'hatch', 'van', 'van', 'truck', 'truck', 'taxi'];
-const LANE_FACTORS = [0.72, 0.56, 0.42]; // left lane is fastest
+const MAX_LANE = LANE_X.length - 1;
+const LANE_FACTORS = [0.76, 0.62, 0.50, 0.40]; // left lane is fastest
 const TYPE_SPEED = {
   truck: [0.30, 0.44],
   van: [0.40, 0.56],
@@ -104,8 +105,8 @@ export class TrafficManager {
   setLevel(level, cruise) {
     this.cruise = cruise;
     this.laneSpeed = LANE_FACTORS.map((f) => f * cruise);
-    this.limit = Math.min(this.cars.length, 5 + level);
-    this.interval = Math.max(0.5, 1.4 - 0.1 * (level - 1));
+    this.limit = Math.min(this.cars.length, 6 + level);
+    this.interval = Math.max(0.45, 1.3 - 0.1 * (level - 1));
   }
 
   /** Clear everything and pre-populate the road ahead. */
@@ -133,7 +134,7 @@ export class TrafficManager {
 
   /** True when `lane` is taken near this car (including a car already signalling into it). */
   _laneBlocked(car, lane, gap) {
-    if (lane < 0 || lane > 2) return true;
+    if (lane < 0 || lane > MAX_LANE) return true;
     for (const o of this.cars) {
       if (o === car || !o.active || o.crashing) continue;
       const there = o.lane === lane || (o.moving && o.targetLane === lane) || (o.blink !== 0 && o.pendingLane === lane);
@@ -155,7 +156,7 @@ export class TrafficManager {
     let best = 0, bestGap = 4;
     for (const dir of [-1, 1]) {
       const lane = car.lane + dir;
-      if (lane < 0 || lane > 2) continue;
+      if (lane < 0 || lane > MAX_LANE) continue;
       let gap = 90;
       for (const o of this.cars) {
         if (o === car || !o.active || o.crashing) continue;
@@ -185,7 +186,7 @@ export class TrafficManager {
     if (!c.yielding) {
       const dir = c.lane - c.pendingLane;
       const alt = c.lane + dir;
-      if (dir && alt >= 0 && alt <= 2 && !this._laneBlocked(c, alt, gap)) {
+      if (dir && alt >= 0 && alt <= MAX_LANE && !this._laneBlocked(c, alt, gap)) {
         this._signal(c, dir, 0.45);
         return;
       }
@@ -213,18 +214,19 @@ export class TrafficManager {
   }
 
   _giveWay(c) {
-    const dir = this._bestYieldDir(c) || (c.lane === 0 ? 1 : c.lane === 2 ? -1 : (Math.random() < 0.5 ? -1 : 1));
+    const dir = this._bestYieldDir(c) || (c.lane === 0 ? 1 : c.lane === MAX_LANE ? -1 : (Math.random() < 0.5 ? -1 : 1));
     c.yielding = true;
     c.yieldT = 2.8;
     this._signal(c, dir, rand(0.45, 0.8));
   }
 
   /** Horn: only the nearest car ahead in the player's path indicates, then moves aside. */
-  yieldAhead(px) {
+  yieldAhead(px, pz = 0) {
     let best = null;
     for (const c of this.cars) {
       if (!c.active || c.crashing) continue;
-      if (c.z > -4 || c.z < -48) continue;
+      const dz = c.z - pz;
+      if (dz > -4 || dz < -48) continue;
       if (Math.abs(c.x - px) > 2.15) continue;
       if (!best || c.z > best.z) best = c;
     }
@@ -232,7 +234,7 @@ export class TrafficManager {
     if (best.yielding && best.blinkT > 0) return;
     best.yielding = true;
     best.yieldT = 3.4;
-    const dir = this._bestYieldDir(best) || (best.lane === 0 ? 1 : best.lane === 2 ? -1 : (Math.random() < 0.5 ? -1 : 1));
+    const dir = this._bestYieldDir(best) || (best.lane === 0 ? 1 : best.lane === MAX_LANE ? -1 : (Math.random() < 0.5 ? -1 : 1));
     this._signal(best, dir, rand(0.65, 0.95));
   }
 
@@ -245,7 +247,7 @@ export class TrafficManager {
     if (car.moving || car.yielding) return false;
     car.yielding = true;
     car.yieldT = 2.8;
-    const dir = this._bestYieldDir(car) || (car.lane === 0 ? 1 : car.lane === 2 ? -1 : (Math.random() < 0.5 ? -1 : 1));
+    const dir = this._bestYieldDir(car) || (car.lane === 0 ? 1 : car.lane === MAX_LANE ? -1 : (Math.random() < 0.5 ? -1 : 1));
     const lane = car.lane + dir;
     if (!this._laneBlocked(car, lane, 3)) {
       car.blink = dir;
@@ -257,7 +259,7 @@ export class TrafficManager {
     return true;
   }
 
-  _drive(c, dt, playerX) {
+  _drive(c, dt, playerXs) {
     if (c.yielding) {
       c.yieldT -= dt;
       if (c.yieldT <= 0 && !c.moving) {
@@ -274,9 +276,10 @@ export class TrafficManager {
       if (c.decideIn <= 0) {
         c.decideIn = rand(2.6, 5.8);
         if (Math.random() < 0.72) {
+          const xs = Array.isArray(playerXs) ? playerXs : [playerXs];
           const dirs = this._openDirs(c, 10).filter((dir) => {
             const dest = LANE_X[c.lane + dir];
-            return !(Math.abs(c.z) < 14 && Math.abs(dest - playerX) < 2);
+            return !(Math.abs(c.z) < 18 && xs.some((px) => Math.abs(dest - px) < 2));
           });
           if (dirs.length) this._signal(c, pick(dirs), rand(0.9, 1.35));
         }
@@ -315,7 +318,8 @@ export class TrafficManager {
     const free = this.cars.filter((c) => !c.active);
     if (!free.length) return false;
     const car = pick(free);
-    const lanes = car.type === 'truck' ? [2, 1, 2] : [0, 1, 2].sort(() => Math.random() - 0.5);
+    const allLanes = Array.from({ length: LANE_X.length }, (_, i) => i);
+    const lanes = car.type === 'truck' ? [MAX_LANE, MAX_LANE - 1, MAX_LANE] : allLanes.sort(() => Math.random() - 0.5);
 
     for (const lane of lanes) {
       let ok = true, vMin = 0, vMax = Infinity;
@@ -330,7 +334,7 @@ export class TrafficManager {
           else vMax = Math.min(vMax, c.v);          // farther: we must not catch it
         } else if (dz < 20) others.add(c.lane);
       }
-      if (!ok || others.size >= 2) continue; // never wall off all three lanes
+      if (!ok || others.size >= 2) continue; // always leave at least 2 lanes clear across the 4-lane road
       const band = TYPE_SPEED[car.type] || [0.5, 0.7];
       const v = Math.max(rand(band[0], band[1]) * (this.cruise || 34), vMin);
       if (v > vMax) continue;
@@ -383,10 +387,10 @@ export class TrafficManager {
   }
 
   /** Returns the first car overlapping the player box, or null. */
-  hit(px, pw, pl) {
+  hit(px, pz, pw, pl) {
     for (const c of this.cars) {
       if (!c.active || c.crashing) continue;
-      if (Math.abs(c.z) > c.hl + pl) continue;
+      if (Math.abs(c.z - pz) > c.hl + pl) continue;
       if (Math.abs(c.x - px) < c.hw + pw) return c;
     }
     return null;

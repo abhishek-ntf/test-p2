@@ -192,7 +192,7 @@ export class OnboardingOverlay {
 
   _showSuccess() {
     this.el.title.textContent = 'GREAT JOB!';
-    this.el.sub.textContent = 'Dodge traffic, survive as long as you can, and climb the leaderboard!';
+    this.el.sub.textContent = 'Dodge traffic across 4 lanes and outscore your rival!';
     this.dots.forEach((d) => d.classList.add('active'));
     setTimeout(() => {
       this.finish(false);
