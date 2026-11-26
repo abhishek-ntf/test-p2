@@ -12,7 +12,7 @@ export const ROAD_HALF = ROAD_WIDTH / 2;
 export const SEGMENT_LENGTH = 40;
 export const SEGMENT_COUNT = 8;
 export const WORLD_SPAN = SEGMENT_LENGTH * SEGMENT_COUNT;
-export const RECYCLE_Z = 30; // anything past this z is behind the camera
+export const RECYCLE_Z = 45; // past both cameras before recycling
 
 export const BASE_SPEED = 34; // world units / second
 export const WHEEL_RADIUS = 0.42;

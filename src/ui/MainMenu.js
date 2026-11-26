@@ -1,8 +1,8 @@
 /**
  * Start screen for 2-Player Neon Highway:
- * - PLAY tab: quick start & 2-player control preview
+ * - PLAY tab: quick start, 2-player control preview, and camera mode option
  * - CONTROLS tab: detailed P1 (WASD) & P2 (Arrow keys) guide
- * - SETTINGS tab: audio toggle, fullscreen, mobile steering mode
+ * - SETTINGS tab: camera mode, audio toggle, fullscreen, mobile steering mode
  */
 export class MainMenu {
   constructor(parent = document.body, { onStart, onSettingsChange, onCalibrate, onToggleMute, onToggleFullscreen } = {}) {
@@ -40,8 +40,16 @@ export class MainMenu {
             </div>
           </div>
 
+          <div class="cam-option-wrap">
+            <small>CAMERA MODE</small>
+            <div class="cam-pick" data-k="camPickPlay">
+              <button type="button" data-cam="split">◫ SPLIT SCREEN</button>
+              <button type="button" data-cam="shared">▢ SHARED</button>
+            </div>
+          </div>
+
           <button type="button" class="btn" data-k="start">START RACE</button>
-          <p class="hint" data-k="hint">Press ENTER to race · P to pause</p>
+          <p class="hint" data-k="hint">Press ENTER to race · C camera · P pause</p>
         </div>
 
         <!-- CONTROLS TAB -->
@@ -58,13 +66,21 @@ export class MainMenu {
                 <p><kbd>↑</kbd> Accelerate<br><kbd>↓</kbd> Brake<br><kbd>←</kbd> / <kbd>→</kbd> Steer<br><kbd>R-Shift</kbd> / <kbd>Space</kbd> Nitro · <kbd>/</kbd> Horn</p>
               </div>
             </div>
-            <p class="hint">Dodge traffic across 4 lanes. Outscore your rival!</p>
+            <p class="hint">Press <kbd>C</kbd> anytime to switch between Split Screen and Shared Camera.</p>
           </div>
         </div>
 
         <!-- SETTINGS TAB -->
         <div class="tab-body hidden" data-body="settings">
           <h2 class="tab-title">SETTINGS</h2>
+
+          <div class="set-group">
+            <small>CAMERA MODE</small>
+            <div class="mode-pick" data-k="camPickSet">
+              <button type="button" data-cam="split">◫ SPLIT SCREEN</button>
+              <button type="button" data-cam="shared">▢ SHARED CAMERA</button>
+            </div>
+          </div>
 
           <div class="set-group">
             <small>AUDIO &amp; DISPLAY</small>
@@ -109,6 +125,18 @@ export class MainMenu {
       e.currentTarget.blur();
       if (this.onStart) this.onStart();
     });
+
+    const wireCamPick = (wrap) => {
+      wrap.querySelectorAll('button').forEach((b) => {
+        b.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          this.setCameraMode(b.dataset.cam);
+          if (this.onSettingsChange) this.onSettingsChange({ cameraMode: b.dataset.cam });
+        });
+      });
+    };
+    wireCamPick(this.el.camPickPlay);
+    wireCamPick(this.el.camPickSet);
 
     this.el.audioBtn.addEventListener('click', (e) => {
       e.currentTarget.blur();
@@ -159,12 +187,19 @@ export class MainMenu {
     this.root.classList.toggle('mode-tilt', mode === 'motion');
   }
 
+  setCameraMode(camMode) {
+    for (const wrap of [this.el.camPickPlay, this.el.camPickSet]) {
+      wrap.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b.dataset.cam === camMode));
+    }
+  }
+
   setMuted(muted) {
     this.el.audioBtn.textContent = muted ? '🔇 SOUND: OFF' : '🔊 SOUND: ON';
   }
 
   show({ isTouch, settings, isMuted = false }) {
     this.setMuted(isMuted);
+    this.setCameraMode(settings.cameraMode || 'split');
 
     const mode = settings.controlMode || 'arrows';
     this._applyMode(mode);
@@ -174,11 +209,11 @@ export class MainMenu {
 
     this.el.setHint.textContent = isTouch
       ? 'Tilt needs permission on iOS — tap CALIBRATE TILT SENSOR while holding phone level.'
-      : 'Both players share one keyboard: P1 uses WASD, P2 uses Arrow Keys.';
+      : 'Split Screen gives each player half the screen with its own camera.';
 
     this.el.hint.textContent = isTouch
       ? 'Tap START RACE to begin!'
-      : 'P1: W A S D · P2: ↑ ← ↓ → · ENTER to start · P to pause';
+      : 'P1: W A S D · P2: ↑ ← ↓ → · C camera · ENTER to start';
 
     this.root.classList.remove('hidden');
   }

@@ -48,6 +48,7 @@ export class KeyboardControls {
     this.onAction = null;     // Enter / R (start, restart)
     this.onMute = null;       // M key
     this.onFullscreen = null; // F key
+    this.onCamera = null;     // C key (split / shared camera)
     this.onKeyActivity = null;
 
     this._p1Left = (c) => c === 'KeyA';
@@ -68,6 +69,7 @@ export class KeyboardControls {
     this._isAction = (c) => c === 'Enter' || c === 'KeyR';
     this._isMute = (c) => c === 'KeyM';
     this._isFs = (c) => c === 'KeyF';
+    this._isCam = (c) => c === 'KeyC';
 
     this._down = (e) => {
       if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
@@ -110,6 +112,7 @@ export class KeyboardControls {
       if (this._isAction(c) && !e.repeat && this.onAction) this.onAction(c);
       if (this._isMute(c) && !e.repeat && this.onMute) this.onMute();
       if (this._isFs(c) && !e.repeat && this.onFullscreen) this.onFullscreen();
+      if (this._isCam(c) && !e.repeat && this.onCamera) this.onCamera();
 
       this.p1._sync();
       this.p2._sync();

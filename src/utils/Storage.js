@@ -11,7 +11,7 @@ const ONBOARD_KEY = 'neon-highway:onboarded';
 const MUTED_KEY = 'neon-highway:muted';
 const VOLUME_KEY = 'neon-highway:volume';
 
-const DEFAULT_SETTINGS = { controlMode: 'arrows', tiltSensitivity: 1.5, tiltInvert: false };
+const DEFAULT_SETTINGS = { controlMode: 'arrows', tiltSensitivity: 1.5, tiltInvert: false, cameraMode: 'split' };
 
 function uuid() {
   try { if (crypto && crypto.randomUUID) return crypto.randomUUID(); } catch {}

@@ -56,6 +56,8 @@ export class Game {
     this.orient = new Orientation(document.body);
 
     this.settings = GameStorage.getSettings();
+    this.cameraMode = this.settings.cameraMode || 'split';
+    this.sm.setCameraMode(this.cameraMode);
     this._modalPaused = false;
     this._steerPickerDone = null;
 
@@ -81,6 +83,7 @@ export class Game {
       onMenu: () => this._enterMenu(),
       onToggleMute: () => this.toggleMute(),
       onToggleFullscreen: () => this.toggleFullscreen(),
+      onToggleCamera: () => this.toggleCameraMode(),
     });
 
     this.hud = new GameHUD(document.body, {
@@ -88,8 +91,10 @@ export class Game {
       onTheme: () => this.toggleTheme(),
       onToggleMute: () => this.toggleMute(),
       onToggleFullscreen: () => this.toggleFullscreen(),
+      onToggleCamera: () => this.toggleCameraMode(),
     });
     this.hud.setMuted(this.audio.isMuted);
+    this.hud.setCameraMode(this.cameraMode);
 
     this.menu = new MainMenu(document.body, {
       onStart: () => this.startRace(),
@@ -119,6 +124,7 @@ export class Game {
     this.kb.onPause = () => this.togglePause();
     this.kb.onMute = () => this.toggleMute();
     this.kb.onFullscreen = () => this.toggleFullscreen();
+    this.kb.onCamera = () => this.toggleCameraMode();
     this.kb.onAction = (code) => {
       if (this.state === MENU && code === 'Enter') this.startRace();
       else if (this.state === OVER && this.overShown) this.startRace();
@@ -192,6 +198,9 @@ export class Game {
       kbHold: 0,
       freeSteer: false,
       z: 0,
+      camX: startX,
+      shake: 0,
+      fovBoost: 0,
     };
   }
 
@@ -207,6 +216,9 @@ export class Game {
       p.kbHold = 0;
       p.freeSteer = false;
       p.z = 0;
+      p.camX = p.startX;
+      p.shake = 0;
+      p.fovBoost = 0;
       p.car.reset(p.startX);
       this.hud.setEliminated(p.id, false);
     }
@@ -218,6 +230,23 @@ export class Game {
 
   toggleTheme() {
     this.sm.setTheme(this.sm.themeName === 'day' ? 'night' : 'day');
+  }
+
+  setCameraMode(mode) {
+    this.cameraMode = mode === 'shared' ? 'shared' : 'split';
+    this.settings = GameStorage.saveSettings({ cameraMode: this.cameraMode });
+    this.sm.setCameraMode(this.cameraMode);
+    this.hud.setCameraMode(this.cameraMode);
+    this.pauseMenu.setCameraMode(this.cameraMode);
+    this.menu.setCameraMode(this.cameraMode);
+  }
+
+  toggleCameraMode() {
+    const next = this.cameraMode === 'split' ? 'shared' : 'split';
+    this.setCameraMode(next);
+    if (this.state === PLAYING) {
+      this.hud.banner(next === 'split' ? 'SPLIT SCREEN' : 'SHARED CAMERA', 'good', 'center');
+    }
   }
 
   toggleMute() {
@@ -261,6 +290,7 @@ export class Game {
 
   _onSettingsChange(partial) {
     this.settings = GameStorage.saveSettings(partial);
+    if (partial.cameraMode) this.setCameraMode(this.settings.cameraMode);
     if (partial.controlMode) this.touch.setMode(this.settings.controlMode);
     if (partial.tiltSensitivity != null) this.touch.setSensitivity(this.settings.tiltSensitivity);
     if (partial.tiltInvert != null) this.touch.setInvert(this.settings.tiltInvert);
@@ -342,7 +372,7 @@ export class Game {
     this.touch.reset();
 
     if (this.paused) {
-      this.pauseMenu.show(this.audio.isMuted);
+      this.pauseMenu.show(this.audio.isMuted, this.cameraMode);
       this.cg.gameplayStop();
       PlaygamaBridge.sendGameplayStopped();
     } else {
@@ -449,9 +479,12 @@ export class Game {
 
       this.worldSpeed = aliveCount > 0 ? speedSum / aliveCount : 0;
 
+      const minZ = this.cameraMode === 'split' ? -22 : -6.5;
+      const maxZ = this.cameraMode === 'split' ? 10 : 3.2;
+
       for (const p of this.players) {
         if (p.alive) {
-          p.z = clamp(p.z + (this.worldSpeed - p.speed) * dt, -6.5, 3.2);
+          p.z = clamp(p.z + (this.worldSpeed - p.speed) * dt, minZ, maxZ);
           if (aliveCount === 1) {
             p.z += (0 - p.z) * Math.min(1, dt * 2.5);
           }
@@ -461,7 +494,7 @@ export class Game {
         } else {
           p.z += this.worldSpeed * dt;
           p.car.group.position.z = p.z;
-          if (p.z > 15) p.car.group.visible = false;
+          if (p.z > 24) p.car.group.visible = false;
         }
       }
     } else if (this.state === OVER) {
@@ -561,8 +594,13 @@ export class Game {
 
   _foul(p, kind, car) {
     p.lives--;
-    this.hud.flash();
+    const isSplit = this.cameraMode === 'split';
+    const side = isSplit ? (p.id === 1 ? 'p1' : 'p2') : 'both';
+    const bannerSide = isSplit ? (p.id === 1 ? 'p1' : 'p2') : 'center';
+
+    this.hud.flash(side);
     this.shake = 0.8;
+    p.shake = 0.8;
     p.car.setInvincible(INVINCIBLE_TIME);
 
     this.audio.impact(kind === 'car');
@@ -585,13 +623,13 @@ export class Game {
       p.nitroActive = false;
       this.hud.setEliminated(p.id, true);
       if (this.players.some((pl) => pl.alive)) {
-        this.hud.banner(`${p.label} OUT!`, 'bad');
+        this.hud.banner(`${p.label} OUT!`, 'bad', bannerSide);
       } else {
         this._gameOver();
       }
     } else {
       const tag = kind === 'car' ? 'CRASH!' : 'RAIL FOUL!';
-      this.hud.banner(`${p.label} ${tag} (${p.lives} LEFT)`, 'bad');
+      this.hud.banner(`${p.label} ${tag} (${p.lives} LEFT)`, 'bad', bannerSide);
     }
   }
 
@@ -611,6 +649,33 @@ export class Game {
   }
 
   _updateCamera(dt) {
+    if (this.cameraMode === 'split') {
+      const cams = [this.sm.cam1, this.sm.cam2];
+      for (let i = 0; i < 2; i++) {
+        const p = this.players[i];
+        const cam = cams[i];
+        const lvl = p.alive ? p.car.flameLevel : 0;
+        p.shake = Math.max(0, p.shake - dt * 1.6);
+        const sh = p.shake * 0.28;
+
+        const targetX = p.alive ? p.car.x * 0.65 : p.camX;
+        p.camX += (targetX - p.camX) * Math.min(1, dt * 12);
+        const z = p.alive ? clamp(p.z, -22, 10) : clamp(p.z, -22, 14);
+
+        cam.position.x = p.camX + (Math.random() - 0.5) * (0.04 * lvl + sh);
+        cam.position.y = 4.3 + (Math.random() - 0.5) * (0.04 * lvl + sh);
+        cam.position.z = z + 9.5 + lvl * 0.85;
+        cam.lookAt(p.camX * 0.85, 1.2, z - 14);
+
+        const targetBoost = p.alive
+          ? clamp((p.speed - this.cruise) / (NITRO_SPEED - this.cruise), 0, 1) * 10
+          : 0;
+        p.fovBoost += (targetBoost - p.fovBoost) * Math.min(1, dt * 5);
+        this.sm.setSplitFovBoost(p.id, p.fovBoost);
+      }
+      return;
+    }
+
     const cam = this.sm.camera;
     const alive = this.players.filter((p) => p.alive);
     const focusX = alive.length

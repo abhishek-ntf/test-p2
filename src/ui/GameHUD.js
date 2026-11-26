@@ -1,13 +1,15 @@
 /**
  * In-game HUD:
- * Displays ONLY both players' scores (plus minimal utility icon buttons).
+ * Displays ONLY both players' scores (plus minimal utility icon buttons & split divider).
  */
 export class GameHUD {
-  constructor(parent = document.body, { onPause, onTheme, onToggleMute, onToggleFullscreen } = {}) {
+  constructor(parent = document.body, { onPause, onTheme, onToggleMute, onToggleFullscreen, onToggleCamera } = {}) {
     this.root = document.createElement('div');
     this.root.id = 'hud';
     this.root.className = 'hidden';
     this.root.innerHTML = `
+      <div class="split-divider" data-k="divider"></div>
+
       <div class="hud-col hud-left">
         <div class="p-score-card p1" data-k="p1Card">
           <small>PLAYER 1</small>
@@ -17,6 +19,7 @@ export class GameHUD {
 
       <div class="hud-col hud-center">
         <div class="btns">
+          <button type="button" data-k="cam" title="Camera: Split / Shared [C]" aria-label="Toggle Camera Mode">◫</button>
           <button type="button" data-k="audio" title="Mute / Unmute [M]" aria-label="Mute / Unmute">🔊</button>
           <button type="button" data-k="fs" title="Toggle Fullscreen [F]" aria-label="Fullscreen">⛶</button>
           <button type="button" data-k="theme" title="Day / Night" aria-label="Day / night">☾</button>
@@ -40,6 +43,7 @@ export class GameHUD {
     this._c = {};
 
     const wire = (btn, fn) => btn.addEventListener('click', (e) => { e.currentTarget.blur(); if (fn) fn(); });
+    wire(this.el.cam, onToggleCamera);
     wire(this.el.pause, onPause);
     wire(this.el.theme, onTheme);
     wire(this.el.audio, onToggleMute);
@@ -63,6 +67,13 @@ export class GameHUD {
     if (card) card.classList.toggle('out', out);
   }
 
+  setCameraMode(mode) {
+    const isSplit = mode === 'split';
+    this.el.divider.classList.toggle('hidden', !isSplit);
+    this.el.cam.textContent = isSplit ? '◫' : '▢';
+    this.el.cam.title = isSplit ? 'Camera: Split Screen [C]' : 'Camera: Shared [C]';
+  }
+
   setMuted(muted) {
     this.el.audio.textContent = muted ? '🔇' : '🔊';
   }
@@ -71,15 +82,19 @@ export class GameHUD {
     this.el.fs.textContent = isFs ? '🗗' : '⛶';
   }
 
-  banner(text, kind = 'good') {
+  banner(text, kind = 'good', side = 'center') {
     const b = this.el.banner;
-    b.textContent = text; b.className = `banner ${kind}`;
-    void b.offsetWidth; b.classList.add('show');
+    b.textContent = text;
+    b.className = `banner ${kind} ${side}`;
+    void b.offsetWidth;
+    b.classList.add('show');
   }
 
-  flash() {
+  flash(side = 'both') {
     const f = this.el.flash;
-    f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
+    f.className = `flash ${side}`;
+    void f.offsetWidth;
+    f.classList.add('on');
   }
 
   dispose() {

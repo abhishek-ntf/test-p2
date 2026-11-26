@@ -1382,3 +1382,57 @@ kbd {
 .duel-box b { font-size: 28px; font-weight: 900; font-variant-numeric: tabular-nums; }
 .duel-box.p1 b { color: #ff2a4d; }
 .duel-box.p2 b { color: #00e5ff; }
+
+/* ===================== Split-Screen Camera UI ===================== */
+.split-divider {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 5;
+  background: linear-gradient(180deg, rgba(255, 42, 77, 0.8), rgba(255, 255, 255, 0.65), rgba(0, 229, 255, 0.8));
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.45);
+}
+
+.banner.p1 { left: 25%; font-size: clamp(20px, 4.5vw, 34px); }
+.banner.p2 { left: 75%; font-size: clamp(20px, 4.5vw, 34px); }
+
+.flash.p1 { right: 50%; }
+.flash.p2 { left: 50%; }
+
+.cam-option-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.cam-option-wrap small {
+  font-size: 10px;
+  letter-spacing: 2px;
+  opacity: .65;
+}
+.cam-pick {
+  display: flex;
+  gap: 6px;
+}
+.cam-pick button {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: 9px;
+  cursor: pointer;
+  font: 800 11px system-ui;
+  letter-spacing: 1px;
+  color: #cfe9ff;
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(0, 229, 255, .28);
+  transition: background .15s, color .15s, border-color .15s;
+}
+.cam-pick button.active {
+  color: #05070f;
+  background: linear-gradient(135deg, var(--neon), #7cf3ff);
+  border-color: transparent;
+}
